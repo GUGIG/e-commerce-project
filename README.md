@@ -1,4 +1,5 @@
 # e-commerce-project
+study/practice project using Vue, firebase, etc.
 
 ## Project setup
 ```
