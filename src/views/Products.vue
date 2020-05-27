@@ -216,19 +216,49 @@ export default {
             // this.product = product.data();
             // this.activeItem = product.id;
         },
-        deleteProduct(docId) {
-            if (confirm("Are you sure about that?")) {
-                db.collection("products")
-                    .doc(docId)
-                    .delete()
-                    .then(() => {
-                        this.watcher();
-                        console.log("Document successfully deleted!");
-                    })
-                    .catch(function(error) {
-                        console.error("Error removing document: ", error);
-                    });
-            }
+        deleteProduct(docID) {
+            this.Swal.fire({
+                title: "Are you sure?",
+                text: "You won't be able to revert this!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, delete it!"
+            }).then(result => {
+                if (result.value) {
+                    this.$firestore.products
+                        .doc(docID)
+                        .delete()
+                        .then(() => {
+                            // this.Swal.fire(
+                            //     "Deleted!",
+                            //     "Your file has been deleted.",
+                            //     "success"
+                            // );
+                            window.Toast.fire({
+                                icon: "success",
+                                title: "Deletion completed"
+                            });
+                        })
+                        .catch(error => {
+                            console.error("deletion failed! error >> ", error);
+                        });
+                }
+            });
+            // docId as parameter
+            // if (confirm("Are you sure about that?")) {
+            //     db.collection("products")
+            //         .doc(docId)
+            //         .delete()
+            //         .then(() => {
+            //             this.watcher();
+            //             console.log("Document successfully deleted!");
+            //         })
+            //         .catch(function(error) {
+            //             console.error("Error removing document: ", error);
+            //         });
+            // }
         },
         // read all documents from the "products" collection from the firestore database.
         // readData() {
