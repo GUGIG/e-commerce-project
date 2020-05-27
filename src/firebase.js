@@ -6,7 +6,7 @@ and, shouldn't firestore be already imported when firebase was imported in the f
 */
 require("firebase/firestore");
 
-var firebaseConfig = {
+const firebaseConfig = {
     apiKey: "AIzaSyBMQwBmRXTs3Up-QNW_pAPIREmi6m8bnPU",
     authDomain: "vue-shop-150cc.firebaseapp.com",
     databaseURL: "https://vue-shop-150cc.firebaseio.com",
