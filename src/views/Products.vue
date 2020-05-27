@@ -159,52 +159,62 @@
 <script>
 import { db } from "../firebase";
 import $ from "jquery";
+// import Swal from "sweetalert2";
 
 export default {
     name: "Products",
     data() {
         return {
-            products: [],
+            products: null,
             product: {
                 name: null,
-                price: null
+                description: null,
+                price: null,
+                tag: null,
+                image: null
             },
             activeItem: null
+        };
+    },
+    firestore() {
+        return {
+            products: db.collection("products")
         };
     },
     methods: {
         addNew() {
             $("#product").modal("show");
         },
-        watcher() {
-            //initially, adds an listener to QuerySnapshot.
-            // next time when this function's called, this function will check the listener to see if there's any change in QuerySnapshot THEN execute the callback that we added to the listener.
-            db.collection("products").onSnapshot(querySnapshot => {
-                this.products = [];
-                querySnapshot.forEach(doc => {
-                    this.products.push(doc);
-                });
-                // console.log("Current cities in CA: ", cities.join(", "));
-            });
-        },
+        // watcher() {
+        //     //initially, adds an listener to QuerySnapshot.
+        //     // next time when this function's called, this function will check the listener to see if there's any change in QuerySnapshot THEN execute the callback that we added to the listener.
+        //     db.collection("products").onSnapshot(querySnapshot => {
+        //         this.products = [];
+        //         querySnapshot.forEach(doc => {
+        //             this.products.push(doc);
+        //         });
+        //         // console.log("Current cities in CA: ", cities.join(", "));
+        //     });
+        // },
         updateProduct() {
-            db.collection("products")
-                .doc(this.activeItem)
-                .update(this.product)
-                .then(() => {
-                    $("#product").modal("hide");
-                    this.watcher();
-                    console.log("Document successfully updated!");
-                })
-                .catch(function(error) {
-                    // The document probably doesn't exist.
-                    console.error("Error updating document: ", error);
-                });
+            // db.collection("products")
+            //     .doc(this.activeItem)
+            //     .update(this.product)
+            //     .then(() => {
+            //         $("#product").modal("hide");
+            //         this.watcher();
+            //         console.log("Document successfully updated!");
+            //     })
+            //     .catch(function(error) {
+            //         // The document probably doesn't exist.
+            //         console.error("Error updating document: ", error);
+            //     });
         },
-        editProduct(product) {
-            $("#product").modal("show");
-            this.product = product.data();
-            this.activeItem = product.id;
+        editProduct() {
+            // product as parameter
+            // $("#product").modal("show");
+            // this.product = product.data();
+            // this.activeItem = product.id;
         },
         deleteProduct(docId) {
             if (confirm("Are you sure about that?")) {
@@ -221,36 +231,36 @@ export default {
             }
         },
         // read all documents from the "products" collection from the firestore database.
-        readData() {
-            this.products = [];
-            db.collection("products")
-                .get()
-                .then(querySnapshot => {
-                    querySnapshot.forEach(doc => {
-                        this.products.push(doc);
-                    });
-                });
-        },
+        // readData() {
+        //     this.products = [];
+        //     db.collection("products")
+        //         .get()
+        //         .then(querySnapshot => {
+        //             querySnapshot.forEach(doc => {
+        //                 this.products.push(doc);
+        //             });
+        //         });
+        // },
         addProduct() {
-            db.collection("products")
-                .add(this.product)
-                .then(docRef => {
-                    // to access "this", you should use lamda.
-                    this.watcher();
-                    console.log("Document written with ID: ", docRef.id);
-                    // this.readData();
-                })
-                .catch(function(error) {
-                    console.error("Error adding document: ", error);
-                });
-        },
-        resetData() {
-            // Object.assign(this.$data, this.$options.data.apply(this)); this code is not desirable to use since it resets all data of this vue instance, which WILL do unintended resets to other data.
+            // db.collection("products")
+            //     .add(this.product)
+            //     .then(docRef => {
+            //         // to access "this", you should use lamda.
+            //         this.watcher();
+            //         console.log("Document written with ID: ", docRef.id);
+            //         // this.readData();
+            //     })
+            //     .catch(function(error) {
+            //         console.error("Error adding document: ", error);
+            //     });
+            this.$firestore.products.add(this.product);
+            $("#product").modal("hide");
+            // this.watcher();
         }
     },
     created() {
         // this.readData();
-        this.watcher();
+        // this.watcher();
     },
     props: {
         msg: String
