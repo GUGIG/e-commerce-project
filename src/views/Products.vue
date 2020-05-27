@@ -30,17 +30,14 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="product in products" :key="product.id">
-                                    <td>{{product.data().name}}</td>
-                                    <td>{{product.data().price}}</td>
+                                <tr v-for="product in products" :key="product['.key']">
+                                    <td>{{product.name}}</td>
+                                    <td>{{product.price}}</td>
                                     <td>
+                                        <button class="btn btn-primary">Edit</button>
                                         <button
-                                            @click="editProduct(product)"
-                                            class="btn btn-primary"
-                                        >Edit</button>
-                                        <button
-                                            @click="deleteProduct(product.id)"
                                             class="btn btn-danger"
+                                            @click="deleteProduct(product['.key'])"
                                         >Delete</button>
                                     </td>
                                 </tr>
@@ -50,45 +47,6 @@
                 </div>
             </div>
         </div>
-        <!-- Modal for product management, both for adding one and editing one. -->
-        <!-- <div class="modal fade" id="product" tabindex="-1" role="dialog">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Edit Product</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <input
-                                type="text"
-                                placeholder="Product Name"
-                                v-model="product.name"
-                                class="form-control"
-                            />
-                        </div>
-                        <div class="form-group">
-                            <input
-                                type="text"
-                                placeholder="Price"
-                                v-model="product.price"
-                                class="form-control"
-                            />
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button
-                            @click="updateProduct"
-                            type="button"
-                            class="btn btn-primary"
-                        >Save changes</button>
-                    </div>
-                </div>
-            </div>
-        </div>-->
 
         <div
             class="modal fade"
@@ -121,6 +79,15 @@
 
                                 <div class="form-group">
                                     <!-- <vue-editor v-model="product.description"></vue-editor> -->
+                                    <textarea
+                                        name="description"
+                                        class="form-control"
+                                        placeholder="Product description"
+                                        v-model="product.description"
+                                        id
+                                        cols="30"
+                                        rows="10"
+                                    ></textarea>
                                 </div>
                             </div>
                             <!-- product sidebar -->
@@ -140,11 +107,11 @@
                                 <div class="form-group">
                                     <input
                                         type="text"
-                                        @keyup.188="addTag"
                                         placeholder="Product tags"
                                         class="form-control"
+                                        v-model="product.tag"
                                     />
-                                    <!-- v-model="tag" -->
+                                    <!-- @keyup.188="addTag" -->
 
                                     <!-- <div class="d-flex">
                                         <p v-for="tag in product.tags">
@@ -182,12 +149,6 @@
                             class="btn btn-primary"
                         >Save changes</button>
                         <!-- v-if="modal == 'new'" -->
-                        <button
-                            @click="updateProduct()"
-                            type="button"
-                            class="btn btn-primary"
-                        >Apply changes</button>
-                        <!-- v-if="modal == 'edit'" -->
                     </div>
                 </div>
             </div>
