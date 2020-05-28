@@ -14,8 +14,11 @@ import Swal from "sweetalert2";
 import NavBar from "./components/NavBar.vue";
 
 Vue.config.productionTip = false;
-Vue.component(NavBar.name, NavBar);
-Vue.use(VueFirestore);
+
+Vue.use(VueFirestore, {
+    key: 'id',         // the name of the property. Default is '.key'.
+    enumerable: true  //  whether it is enumerable or not. Default is true.
+});
 Vue.prototype.Swal = Swal;
 
 const Toast = Swal.mixin({
@@ -38,6 +41,8 @@ const Toast = Swal.mixin({
 
 window.Toast = Toast;
 
+
+Vue.component(NavBar.name, NavBar);
 // Vue.component('NavBar', require('./components/NavBar.vue').default);
 
 new Vue({
