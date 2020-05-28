@@ -19,7 +19,7 @@
                 <div class="product-test">
                     <br />
                     <h3 class="d-inline-block">Products list</h3>
-                    <button @click="addNew" class="btn btn-primary float-right">Add Product</button>
+                    <button @click="openAddModal" class="btn btn-primary float-right">Add Product</button>
                     <div class="table-responsive">
                         <table class="table">
                             <thead>
@@ -30,14 +30,17 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="product in products" :key="product['.key']">
-                                    <td>{{product.name}}</td>
-                                    <td>{{product.price}}</td>
+                                <tr v-for="p in products" :key="p.id">
+                                    <td>{{p.name}}</td>
+                                    <td>{{p.price}}</td>
                                     <td>
-                                        <button class="btn btn-primary">Edit</button>
+                                        <button
+                                            class="btn btn-primary"
+                                            @click="openEditModal(p)"
+                                        >Edit</button>
                                         <button
                                             class="btn btn-danger"
-                                            @click="deleteProduct(product['.key'])"
+                                            @click="deleteProduct(p)"
                                         >Delete</button>
                                     </td>
                                 </tr>
@@ -48,6 +51,7 @@
             </div>
         </div>
 
+        <!-- modal -->
         <div
             class="modal fade"
             id="product"
@@ -56,10 +60,11 @@
             aria-labelledby="editLabel"
             aria-hidden="true"
         >
-            <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="editLabel">Edit Product</h5>
+                        <h5 v-if="modal == 'new'" class="modal-title" id="editLabel">Add Product</h5>
+                        <h5 v-if="modal == 'edit'" class="modal-title" id="editLabel">Edit Product</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -79,7 +84,8 @@
 
                                 <div class="form-group">
                                     <!-- <vue-editor v-model="product.description"></vue-editor> -->
-                                    <textarea
+                                    <vue-editor v-model="product.description"></vue-editor>
+                                    <!-- <textarea
                                         name="description"
                                         class="form-control"
                                         placeholder="Product description"
@@ -87,7 +93,7 @@
                                         id
                                         cols="30"
                                         rows="10"
-                                    ></textarea>
+                                    ></textarea> -->
                                 </div>
                             </div>
                             <!-- product sidebar -->
@@ -107,11 +113,11 @@
                                 <div class="form-group">
                                     <input
                                         type="text"
-                                        placeholder="Product tags"
+                                        placeholder="Product tags (Use , to separate tags)"
                                         class="form-control"
-                                        v-model="product.tag"
+                                        v-model="tag"
+                                        @keydown.188="addTag"
                                     />
-                                    <!-- @keyup.188="addTag" -->
 
                                     <!-- <div class="d-flex">
                                         <p v-for="tag in product.tags">
@@ -144,10 +150,17 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                         <button
+                            v-if="modal == 'new'"
                             @click="addProduct()"
                             type="button"
                             class="btn btn-primary"
-                        >Save changes</button>
+                        >Add Product</button>
+                        <button
+                            v-if="modal == 'edit'"
+                            @click="updateProduct()"
+                            type="button"
+                            class="btn btn-primary"
+                        >Apply Changes</button>
                         <!-- v-if="modal == 'new'" -->
                     </div>
                 </div>
@@ -159,21 +172,18 @@
 <script>
 import { db } from "../firebase";
 import $ from "jquery";
-// import Swal from "sweetalert2";
+import { VueEditor } from "vue2-editor";
+// import Swal from "sweetalert2"; already imported in main.js
 
 export default {
     name: "Products",
     data() {
         return {
-            products: null,
-            product: {
-                name: null,
-                description: null,
-                price: null,
-                tag: null,
-                image: null
-            },
-            activeItem: null
+            // products: null,
+            product: null,
+            activeItem: null,
+            modal: null,
+            tag: null
         };
     },
     firestore() {
@@ -182,41 +192,54 @@ export default {
         };
     },
     methods: {
-        addNew() {
+        addTag() {
+            this.product.tags.push(this.tag);
+            console.log("pushed!");
+        },
+        initializeProduct() {
+            this.product = {
+                name: null,
+                description: null,
+                price: null,
+                tags: [],
+                image: null
+            };
+            this.tag = null;
+        },
+        // open the modal window with new mode.
+        openAddModal() {
+            this.initializeProduct();
+            this.modal = "new";
             $("#product").modal("show");
         },
-        // watcher() {
-        //     //initially, adds an listener to QuerySnapshot.
-        //     // next time when this function's called, this function will check the listener to see if there's any change in QuerySnapshot THEN execute the callback that we added to the listener.
-        //     db.collection("products").onSnapshot(querySnapshot => {
-        //         this.products = [];
-        //         querySnapshot.forEach(doc => {
-        //             this.products.push(doc);
-        //         });
-        //         // console.log("Current cities in CA: ", cities.join(", "));
-        //     });
-        // },
+        // open the modal window with edit mode.
+        openEditModal(product) {
+            this.modal = "edit";
+            this.product = Object.assign({}, product);
+            this.activeItem = this.product.id;
+            delete this.product.id;
+            $("#product").modal("show");
+        },
+        // update the document in the database.
         updateProduct() {
-            // db.collection("products")
-            //     .doc(this.activeItem)
-            //     .update(this.product)
-            //     .then(() => {
-            //         $("#product").modal("hide");
-            //         this.watcher();
-            //         console.log("Document successfully updated!");
-            //     })
-            //     .catch(function(error) {
-            //         // The document probably doesn't exist.
-            //         console.error("Error updating document: ", error);
-            //     });
+            this.$firestore.products
+                .doc(this.activeItem)
+                .update(this.product)
+                .then(() => {
+                    window.Toast.fire({
+                        icon: "success",
+                        title: "edited successfully!"
+                    });
+                });
+            $("#product").modal("hide");
+        },        
+        // adding a product to the database.
+        addProduct() {
+            this.$firestore.products.add(this.product);
+            $("#product").modal("hide");
         },
-        editProduct() {
-            // product as parameter
-            // $("#product").modal("show");
-            // this.product = product.data();
-            // this.activeItem = product.id;
-        },
-        deleteProduct(docID) {
+        // delete a document in the database.
+        deleteProduct(product) {
             this.Swal.fire({
                 title: "Are you sure?",
                 text: "You won't be able to revert this!",
@@ -228,7 +251,7 @@ export default {
             }).then(result => {
                 if (result.value) {
                     this.$firestore.products
-                        .doc(docID)
+                        .doc(product.id)
                         .delete()
                         .then(() => {
                             // this.Swal.fire(
@@ -245,55 +268,85 @@ export default {
                             console.error("deletion failed! error >> ", error);
                         });
                 }
-            });
-            // docId as parameter
-            // if (confirm("Are you sure about that?")) {
+            });            
+        },
+        collapseThisShit() {
+            // deleteProduct(docId) {
+            //     // docId as parameter
+            //     if (confirm("Are you sure about that?")) {
+            //         db.collection("products")
+            //             .doc(docId)
+            //             .delete()
+            //             .then(() => {
+            //                 this.watcher();
+            //                 console.log("Document successfully deleted!");
+            //             })
+            //             .catch(function(error) {
+            //                 console.error("Error removing document: ", error);
+            //             });
+            //     }
+            // }
+            // read all documents from the "products" collection from the firestore database.
+            // readData() {
+            //     this.products = [];
             //     db.collection("products")
-            //         .doc(docId)
-            //         .delete()
-            //         .then(() => {
+            //         .get()
+            //         .then(querySnapshot => {
+            //             querySnapshot.forEach(doc => {
+            //                 this.products.push(doc);
+            //             });
+            //         });
+            // },
+            // watcher() {
+            //     //initially, adds an listener to QuerySnapshot.
+            //     // next time when this function's called, this function will check the listener to see if there's any change in QuerySnapshot THEN execute the callback that we added to the listener.
+            //     db.collection("products").onSnapshot(querySnapshot => {
+            //         this.products = [];
+            //         querySnapshot.forEach(doc => {
+            //             this.products.push(doc);
+            //         });
+            //         // console.log("Current cities in CA: ", cities.join(", "));
+            //     });
+            // },
+            // addProduct() {
+            //     db.collection("products")
+            //         .add(this.product)
+            //         .then(docRef => {
+            //             // to access "this", you should use lamda.
             //             this.watcher();
-            //             console.log("Document successfully deleted!");
+            //             console.log("Document written with ID: ", docRef.id);
+            //             // this.readData();
             //         })
             //         .catch(function(error) {
-            //             console.error("Error removing document: ", error);
+            //             console.error("Error adding document: ", error);
             //         });
-            // }
-        },
-        // read all documents from the "products" collection from the firestore database.
-        // readData() {
-        //     this.products = [];
-        //     db.collection("products")
-        //         .get()
-        //         .then(querySnapshot => {
-        //             querySnapshot.forEach(doc => {
-        //                 this.products.push(doc);
-        //             });
-        //         });
-        // },
-        addProduct() {
-            // db.collection("products")
-            //     .add(this.product)
-            //     .then(docRef => {
-            //         // to access "this", you should use lamda.
-            //         this.watcher();
-            //         console.log("Document written with ID: ", docRef.id);
-            //         // this.readData();
-            //     })
-            //     .catch(function(error) {
-            //         console.error("Error adding document: ", error);
-            //     });
-            this.$firestore.products.add(this.product);
-            $("#product").modal("hide");
-            // this.watcher();
+            //     this.watcher();
+            // },
+            // updateProduct() {
+            //     db.collection("products")
+            //         .doc(this.activeItem)
+            //         .update(this.product)
+            //         .then(() => {
+            //             $("#product").modal("hide");
+            //             this.watcher();
+            //             console.log("Document successfully updated!");
+            //         })
+            //         .catch(function(error) {
+            //             // The document probably doesn't exist.
+            //             console.error("Error updating document: ", error);
+            //         });
+            // },
         }
+
     },
     created() {
-        // this.readData();
-        // this.watcher();
+        this.initializeProduct();
     },
     props: {
         msg: String
+    },
+    components: {
+        VueEditor
     }
 };
 </script>
