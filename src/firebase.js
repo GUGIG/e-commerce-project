@@ -1,4 +1,5 @@
 import firebase from "firebase";
+import "firebase/storage";
 /*
 according to the official document, in order to use firestore, you must manually require firestore as below.
 ..but why not just import it instead?
