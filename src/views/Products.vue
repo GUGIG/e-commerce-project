@@ -93,7 +93,7 @@
                                         id
                                         cols="30"
                                         rows="10"
-                                    ></textarea> -->
+                                    ></textarea>-->
                                 </div>
                             </div>
                             <!-- product sidebar -->
@@ -116,7 +116,7 @@
                                         placeholder="Product tags (Use , to separate tags)"
                                         class="form-control"
                                         v-model="tag"
-                                        @keydown.188="addTag"
+                                        @keyup.188="addTag"
                                     />
 
                                     <!-- <div class="d-flex">
@@ -128,8 +128,7 @@
 
                                 <div class="form-group">
                                     <label for="product_image">Product Images</label>
-                                    <input type="file" class="form-control" />
-                                    <!-- @change="uploadImage" -->
+                                    <input type="file" class="form-control" @change="holdImage" />
                                 </div>
 
                                 <div class="form-group d-flex">
@@ -170,7 +169,7 @@
 </template>
 
 <script>
-import { db } from "../firebase";
+import { fb, db } from "../firebase";
 import $ from "jquery";
 import { VueEditor } from "vue2-editor";
 // import Swal from "sweetalert2"; already imported in main.js
@@ -183,7 +182,8 @@ export default {
             product: null,
             activeItem: null,
             modal: null,
-            tag: null
+            tag: null,
+            imageFile: null
         };
     },
     firestore() {
@@ -192,9 +192,52 @@ export default {
         };
     },
     methods: {
+        // 얘 맨 밑에 promise 리턴하게 한 다음에 then 쓰면 이미지 업로두 이후에 then이 실행되야하는거 아님?
+        uploadImage() {
+            let storageRef = fb
+                .storage()
+                .ref("products/" + this.imageFile.name);
+            let uploadTask = storageRef.put(this.imageFile);     
+            console.log("1");       
+
+            // you MUST pass 3 callbacks to this method.
+            const ult = async () => {
+                console.log("2");
+                await uploadTask.on(
+                    "state_changed",
+                    snapshot => {
+                        // Observe state change events such as progress, pause, and resume
+                        // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+                        console.log(snapshot);
+                    },
+                    error => {
+                        // Handle unsuccessful uploads
+                        console.log(error);
+                    },
+                    () => {
+                        // Handle successful uploads on complete
+                        // For instance, get the download URL: https://firebasestorage.googleapis.com/...
+                        uploadTask.snapshot.ref
+                            .getDownloadURL()
+                            .then(downloadURL => {
+                                console.log("File available at", downloadURL);
+                                this.product.image = downloadURL;
+                            });
+                    }
+                );
+                console.log("3");
+                return;
+            }
+            console.log("4");
+            return ult();
+        },
+        holdImage(event) {
+            this.imageFile = event.target.files[0];
+            // this.uploadImage();
+        },
         addTag() {
             this.product.tags.push(this.tag);
-            console.log("pushed!");
+            this.tag = "";
         },
         initializeProduct() {
             this.product = {
@@ -205,6 +248,7 @@ export default {
                 image: null
             };
             this.tag = null;
+            this.imageFile = null;
         },
         // open the modal window with new mode.
         openAddModal() {
@@ -232,9 +276,11 @@ export default {
                     });
                 });
             $("#product").modal("hide");
-        },        
+        },
         // adding a product to the database.
-        addProduct() {
+        async addProduct() {
+            await this.uploadImage();
+            console.log("teehee");
             this.$firestore.products.add(this.product);
             $("#product").modal("hide");
         },
@@ -268,7 +314,7 @@ export default {
                             console.error("deletion failed! error >> ", error);
                         });
                 }
-            });            
+            });
         },
         collapseThisShit() {
             // deleteProduct(docId) {
@@ -337,7 +383,6 @@ export default {
             //         });
             // },
         }
-
     },
     created() {
         this.initializeProduct();
