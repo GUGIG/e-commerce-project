@@ -137,6 +137,7 @@ export default {
     methods: {
         register() {
             fb.auth().createUserWithEmailAndPassword(this.email, this.password)
+                .then()
                 .catch(function(error) {
                     // Handle Errors here.
                     var errorCode = error.code;
@@ -144,7 +145,7 @@ export default {
                     if (errorCode == "auth/weak-password") {
                         alert("The password is too weak.");
                     } else {
-                        alert(errorMessage);
+                        alert(errorMessage); // auth/email-already-in-use
                     }
                     console.log(error);
                 });
